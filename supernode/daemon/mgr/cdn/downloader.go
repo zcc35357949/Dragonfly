@@ -11,6 +11,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"crypto/tls"
 )
 
 // download downloads the file from the original address and
@@ -18,7 +19,7 @@ import (
 //
 // If the returned error is nil, the Response will contain a non-nil
 // Body which the caller is expected to close.
-func (cm *Manager) download(ctx context.Context, taskID, url string, headers map[string]string,
+func (cm *Manager) download(ctx context.Context, taskID, url string, headers map[string]string, tlsConfig *tls.Config,
 	startPieceNum int, httpFileLength int64, pieceContSize int32) (*http.Response, error) {
 	var checkCode = http.StatusOK
 
@@ -36,12 +37,12 @@ func (cm *Manager) download(ctx context.Context, taskID, url string, headers map
 	}
 
 	logrus.Infof("start to download for taskId(%s) with fileUrl: %s header: %v checkCode: %d", taskID, url, headers, checkCode)
-	return getWithURL(url, headers, checkCode)
+	return getWithURL(url, headers, tlsConfig, checkCode)
 }
 
-func getWithURL(url string, headers map[string]string, checkCode int) (*http.Response, error) {
+func getWithURL(url string, headers map[string]string, tlsConfig *tls.Config, checkCode int) (*http.Response, error) {
 	// TODO: add timeout
-	resp, err := cutil.HTTPGet(url, headers)
+	resp, err := cutil.HTTPGetWithTls(url, headers, tlsConfig)
 	if err != nil {
 		return nil, err
 	}

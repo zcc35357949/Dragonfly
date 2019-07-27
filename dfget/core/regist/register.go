@@ -28,6 +28,8 @@ import (
 	"github.com/dragonflyoss/Dragonfly/dfget/types"
 	"github.com/dragonflyoss/Dragonfly/version"
 	"github.com/sirupsen/logrus"
+	"crypto/tls"
+	"io/ioutil"
 )
 
 // SupernodeRegister encapsulates the Register steps into a struct.
@@ -135,12 +137,19 @@ func (s *supernodeRegister) constructRegisterRequest(port int) *types.RegisterRe
 		CallSystem: cfg.CallSystem,
 		Headers:    cfg.Header,
 		Dfdaemon:   cfg.DFDaemon,
+		Insecure:   cfg.Insecure,
 	}
 	if cfg.Md5 != "" {
 		req.Md5 = cfg.Md5
 	} else if cfg.Identifier != "" {
 		req.Identifier = cfg.Identifier
 	}
+
+	if cfg.Cacert != "" {
+		cabytes, _ := ioutil.ReadFile(cfg.Cacert)
+		req.RootCAs = cabytes
+	}
+
 	return req
 }
 

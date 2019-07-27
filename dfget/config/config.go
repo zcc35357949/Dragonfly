@@ -165,6 +165,9 @@ type Config struct {
 	// default:`p2p`.
 	Pattern string `json:"pattern,omitempty"`
 
+	// CA certificate to verify when supernode download from source
+	Cacert string `json:"cacert,omitempty"`
+
 	// Filter filter some query params of url, use char '&' to separate different params.
 	// eg: -f 'key&sign' will filter 'key' and 'sign' query param.
 	// in this way, different urls correspond one same download task that can use p2p mode.
@@ -182,6 +185,9 @@ type Config struct {
 
 	// DFDaemon indicates whether the caller is from dfdaemon
 	DFDaemon bool `json:"dfdaemon,omitempty"`
+
+	// Insecure indicates whether skip secure verify when supernode download from source
+	Insecure bool `json:"insecure,omitempty"`
 
 	// Version show version.
 	Version bool `json:"version,omitempty"`

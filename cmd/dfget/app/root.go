@@ -215,6 +215,8 @@ func initFlags() {
 
 	flagSet.StringVar(&cfg.CallSystem, "callsystem", "",
 		"The name of dfget caller which is for debugging. Once set, it will be passed to all components around the request to make debugging easy")
+	flagSet.StringVar(&cfg.Cacert, "cacert", "",
+		"The cacert file which is used to verify remote server when supernode download from source.")
 	flagSet.StringVarP(&cfg.Pattern, "pattern", "p", "p2p",
 		"download pattern, must be p2p/cdn/source, cdn and source do not support flag --totallimit")
 	flagSet.StringVarP(&filter, "filter", "f", "",
@@ -229,6 +231,8 @@ func initFlags() {
 		"disable back source downloading for requested file when p2p fails to download it")
 	flagSet.BoolVar(&cfg.DFDaemon, "dfdaemon", false,
 		"identify whether the request is from dfdaemon")
+	flagSet.BoolVar(&cfg.Insecure, "insecure", false,
+		"identify whether supernode should skip secure verify when download from source.")
 	flagSet.IntVar(&cfg.ClientQueueSize, "clientqueue", config.DefaultClientQueueSize,
 		"specify the size of client queue which controls the number of pieces that can be processed simultaneously")
 

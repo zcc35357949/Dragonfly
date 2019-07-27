@@ -37,6 +37,12 @@ type TaskCreateRequest struct {
 	//
 	Dfdaemon bool `json:"dfdaemon,omitempty"`
 
+	// tells whether skip secure verify when supernode download the remote source file
+	Insecure bool `json:"insecure,omitempty"`
+
+	// set tls config by ca to download the remote source file
+	RootCAs []byte `json:"root_cas,omitempty"`
+
 	// filter is used to filter request queries in URL.
 	// For example, when a user wants to start to download a task which has a remote URL of
 	// a.b.com/fileA?user=xxx&auth=yyy, user can add a filter parameter ["user", "auth"]

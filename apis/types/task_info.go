@@ -8,11 +8,12 @@ package types
 import (
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+	"crypto/tls"
 )
 
 // TaskInfo detailed information about task in supernode.
@@ -82,6 +83,9 @@ type TaskInfo struct {
 	// --filter parameter of dfget. The usage of it is that different rawURL may generate the same taskID.
 	//
 	TaskURL string `json:"taskURL,omitempty"`
+
+	// The tls config used for request the remote source file.
+	TlsConfig *tls.Config `json:"tls_config,omitempty"`
 }
 
 // Validate validates this task info

@@ -6,7 +6,7 @@ package types
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -16,7 +16,6 @@ import (
 // TaskRegisterRequest task register request
 // swagger:model TaskRegisterRequest
 type TaskRegisterRequest struct {
-
 	// IP address which peer client carries
 	// Format: ipv4
 	IP strfmt.IPv4 `json:"IP,omitempty"`
@@ -40,6 +39,12 @@ type TaskRegisterRequest struct {
 	// pulling request into raw requests into those dfget recognizes.
 	//
 	Dfdaemon bool `json:"dfdaemon,omitempty"`
+
+	// tells whether skip secure verify when supernode download the remote source file
+	Insecure bool `json:"insecure,omitempty"`
+
+	// set tls config by ca to download the remote source file
+	RootCAs []byte `json:"root_cas,omitempty"`
 
 	// extra HTTP headers sent to the rawURL.
 	// This field is carried with the request to supernode.

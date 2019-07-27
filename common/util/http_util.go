@@ -32,6 +32,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
+	"crypto/tls"
 )
 
 /* http content types */
@@ -210,16 +211,20 @@ func Do(url string, headers map[string]string, timeout time.Duration) (string, e
 
 // HTTPGet send an HTTP GET request with headers.
 func HTTPGet(url string, headers map[string]string) (*http.Response, error) {
-	return HTTPWithHeaders("GET", url, headers, 0)
+	return HTTPWithHeaders("GET", url, headers, 0, nil)
 }
 
 // HTTPGetTimeout send an HTTP GET request with timeout.
 func HTTPGetTimeout(url string, headers map[string]string, timeout time.Duration) (*http.Response, error) {
-	return HTTPWithHeaders("GET", url, headers, timeout)
+	return HTTPWithHeaders("GET", url, headers, timeout, nil)
+}
+
+func HTTPGetWithTls(url string, headers map[string]string, tlsConfig *tls.Config) (*http.Response, error) {
+	return HTTPWithHeaders("GET", url, headers, 0, tlsConfig)
 }
 
 // HTTPWithHeaders send an HTTP request with headers and specified method.
-func HTTPWithHeaders(method, url string, headers map[string]string, timeout time.Duration) (*http.Response, error) {
+func HTTPWithHeaders(method, url string, headers map[string]string, timeout time.Duration, tlsConfig *tls.Config) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -235,7 +240,12 @@ func HTTPWithHeaders(method, url string, headers map[string]string, timeout time
 		req.Header.Add(k, v)
 	}
 
-	return http.DefaultClient.Do(req)
+	tr := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+	client := &http.Client{Transport: tr}
+
+	return client.Do(req)
 }
 
 // HTTPStatusOk reports whether the http response code is 200.

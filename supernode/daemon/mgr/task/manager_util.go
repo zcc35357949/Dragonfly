@@ -14,6 +14,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"crypto/tls"
+	"encoding/pem"
+	"crypto/x509"
 )
 
 // addOrUpdateTask adds a new task or update the exist task to taskStore.
@@ -36,6 +39,19 @@ func (tm *Manager) addOrUpdateTask(ctx context.Context, req *types.TaskCreateReq
 		CdnStatus:  types.TaskInfoCdnStatusWAITING,
 		PieceTotal: -1,
 	}
+
+	// set tls config for task
+	tlsConfig := &tls.Config{InsecureSkipVerify:req.Insecure}
+	if len(req.RootCAs) != 0 {
+		caBlock, _ := pem.Decode(req.RootCAs)
+		roots := x509.NewCertPool()
+		cert, err := x509.ParseCertificate(caBlock.Bytes)
+		if err == nil {
+			roots.AddCert(cert)
+			tlsConfig.RootCAs = roots
+		}
+	}
+	newTask.TlsConfig = tlsConfig
 
 	if v, err := tm.taskStore.Get(taskID); err == nil {
 		task = v.(*types.TaskInfo)

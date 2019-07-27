@@ -79,6 +79,8 @@ func (s *Server) registry(ctx context.Context, rw http.ResponseWriter, req *http
 		CID:         request.CID,
 		CallSystem:  request.CallSystem,
 		Dfdaemon:    request.Dfdaemon,
+		Insecure:    request.Insecure,
+		RootCAs:     request.RootCAs,
 		Headers:     cutil.ConvertHeaders(request.Headers),
 		Identifier:  request.Identifier,
 		Md5:         request.Md5,
