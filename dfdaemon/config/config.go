@@ -257,7 +257,7 @@ func (u *URL) MarshalYAML() (interface{}, error) {
 // CertPool is a wrapper around x509.CertPool, which can be unmarshalled and
 // constructed from a list of filenames
 type CertPool struct {
-	files []string
+	Files []string
 	*x509.CertPool
 }
 
