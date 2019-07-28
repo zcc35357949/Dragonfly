@@ -20,7 +20,7 @@ package downloader
 type Interface interface {
 	// Download download url file to file name
 	// return dst path and download error
-	Download(url string, header map[string][]string, name string, insecure bool, cacerts []string) (string, error)
+	Download(url string, header map[string][]string, name string) (string, error)
 }
 
 // Factory is a function that returns a new downloader

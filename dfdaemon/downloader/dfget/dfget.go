@@ -29,6 +29,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/dfdaemon/config"
 	"github.com/dragonflyoss/Dragonfly/dfdaemon/constant"
 	"github.com/dragonflyoss/Dragonfly/dfdaemon/exception"
+	netUrl "net/url"
 )
 
 // DFGetter implements Downloader to download file by dragonfly
@@ -42,10 +43,10 @@ func NewGetter(cfg config.DFGetConfig) *DFGetter {
 }
 
 // Download is the method of DFGetter to download by dragonfly.
-func (dfGetter *DFGetter) Download(url string, header map[string][]string, name string, insecure bool, cacerts []string) (string, error) {
+func (dfGetter *DFGetter) Download(url string, header map[string][]string, name string) (string, error) {
 	startTime := time.Now()
 	dstPath := filepath.Join(dfGetter.config.DFRepo, name)
-	cmd := dfGetter.getCommand(url, header, dstPath, insecure, cacerts)
+	cmd := dfGetter.getCommand(url, header, dstPath)
 	err := cmd.Run()
 	if cmd.ProcessState.Success() {
 		log.Infof("dfget url:%s [SUCCESS] cost:%.3fs", url, time.Since(startTime).Seconds())
@@ -61,7 +62,7 @@ func (dfGetter *DFGetter) Download(url string, header map[string][]string, name 
 
 // getCommand returns the command to download the given resource
 func (dfGetter *DFGetter) getCommand(
-	url string, header map[string][]string, output string, insecure bool, cacerts []string,
+	url string, header map[string][]string, output string,
 ) (cmd *exec.Cmd) {
 	args := []string{
 		"--dfdaemon",
@@ -77,10 +78,6 @@ func (dfGetter *DFGetter) getCommand(
 		args = append(args, "--verbose")
 	}
 
-	if insecure {
-		args = append(args, "--insecure")
-	}
-
 	add := func(key, value string) {
 		if v := strings.TrimSpace(value); v != "" {
 			args = append(args, key, v)
@@ -93,7 +90,6 @@ func (dfGetter *DFGetter) getCommand(
 	add("-s", dfGetter.config.RateLimit)
 	add("--totallimit", dfGetter.config.RateLimit)
 	add("--node", strings.Join(dfGetter.config.SuperNodes, ","))
-	add("--cacert", strings.Join(cacerts, ","))
 
 	for key, value := range header {
 		// discard HTTP host header for backing to source successfully
@@ -106,6 +102,18 @@ func (dfGetter *DFGetter) getCommand(
 			}
 		} else {
 			add("--header", fmt.Sprintf("%s:%s", key, ""))
+		}
+	}
+
+	urlInfo, _ := netUrl.Parse(url)
+	for _, h := range dfGetter.config.HostsConfig {
+		if urlInfo != nil && h.Regx.MatchString(urlInfo.Host) {
+			if h.Insecure {
+				args = append(args, "--insecure")
+			}
+			if h.Certs != nil && len(h.Certs.Files) != 0 {
+				add("--cacert", strings.Join(h.Certs.Files, ","))
+			}
 		}
 	}
 

@@ -137,28 +137,33 @@ func (p *Properties) Validate() error {
 
 // DFGetConfig returns config for dfget downloader
 func (p *Properties) DFGetConfig() DFGetConfig {
-	return DFGetConfig{
-		SuperNodes: p.SuperNodes,
-		DFRepo:     p.DFRepo,
-		DFPath:     p.DFPath,
-		RateLimit:  p.RateLimit,
-		URLFilter:  p.URLFilter,
-		CallSystem: p.CallSystem,
-		Notbs:      p.Notbs,
-		Verbose:    p.Verbose,
+	config := DFGetConfig{
+		SuperNodes:  p.SuperNodes,
+		DFRepo:      p.DFRepo,
+		DFPath:      p.DFPath,
+		RateLimit:   p.RateLimit,
+		URLFilter:   p.URLFilter,
+		CallSystem:  p.CallSystem,
+		Notbs:       p.Notbs,
+		Verbose:     p.Verbose,
 	}
+	if p.HijackHTTPS != nil {
+		config.HostsConfig = p.HijackHTTPS.Hosts
+	}
+	return config
 }
 
 // DFGetConfig configures how dfdaemon calls dfget
 type DFGetConfig struct {
-	SuperNodes []string `yaml:"supernodes"`
-	DFRepo     string   `yaml:"localrepo"`
-	DFPath     string   `yaml:"dfpath"`
-	RateLimit  string   `yaml:"ratelimit"`
-	URLFilter  string   `yaml:"urlfilter"`
-	CallSystem string   `yaml:"callsystem"`
-	Notbs      bool     `yaml:"notbs"`
-	Verbose    bool     `yaml:"verbose"`
+	SuperNodes  []string      `yaml:"supernodes"`
+	DFRepo      string        `yaml:"localrepo"`
+	DFPath      string        `yaml:"dfpath"`
+	RateLimit   string        `yaml:"ratelimit"`
+	URLFilter   string        `yaml:"urlfilter"`
+	CallSystem  string        `yaml:"callsystem"`
+	Notbs       bool          `yaml:"notbs"`
+	Verbose     bool          `yaml:"verbose"`
+	HostsConfig []*HijackHost `yaml:"hosts" json:"hosts"`
 }
 
 // RegistryMirror configures the mirror of the official docker registry
