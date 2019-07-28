@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"crypto/tls"
-	"encoding/pem"
 	"crypto/x509"
 )
 
@@ -42,15 +41,13 @@ func (tm *Manager) addOrUpdateTask(ctx context.Context, req *types.TaskCreateReq
 
 	// set tls config for task
 	tlsConfig := &tls.Config{InsecureSkipVerify:req.Insecure}
-	if len(req.RootCAs) != 0 {
-		caBlock, _ := pem.Decode(req.RootCAs)
-		roots := x509.NewCertPool()
-		cert, err := x509.ParseCertificate(caBlock.Bytes)
-		if err == nil {
-			roots.AddCert(cert)
-			tlsConfig.RootCAs = roots
+	roots := x509.NewCertPool()
+	for _, caBytes := range req.RootCAs {
+		if len(caBytes) != 0 {
+			roots.AppendCertsFromPEM(caBytes)
 		}
 	}
+	tlsConfig.RootCAs = roots
 	newTask.TlsConfig = tlsConfig
 
 	if v, err := tm.taskStore.Get(taskID); err == nil {

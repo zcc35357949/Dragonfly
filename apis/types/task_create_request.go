@@ -6,7 +6,7 @@ package types
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -16,7 +16,6 @@ import (
 // TaskCreateRequest task create request
 // swagger:model TaskCreateRequest
 type TaskCreateRequest struct {
-
 	// CID means the client ID. It maps to the specific dfget process.
 	// When user wishes to download an image/file, user would start a dfget process to do this.
 	// This dfget is treated a client and carries a client ID.
@@ -41,7 +40,7 @@ type TaskCreateRequest struct {
 	Insecure bool `json:"insecure,omitempty"`
 
 	// set tls config by ca to download the remote source file
-	RootCAs []byte `json:"root_cas,omitempty"`
+	RootCAs [][]byte `json:"root_cas,omitempty"`
 
 	// filter is used to filter request queries in URL.
 	// For example, when a user wants to start to download a task which has a remote URL of

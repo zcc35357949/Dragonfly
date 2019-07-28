@@ -44,7 +44,7 @@ type TaskRegisterRequest struct {
 	Insecure bool `json:"insecure,omitempty"`
 
 	// set tls config by ca to download the remote source file
-	RootCAs []byte `json:"root_cas,omitempty"`
+	RootCAs [][]byte `json:"root_cas,omitempty"`
 
 	// extra HTTP headers sent to the rawURL.
 	// This field is carried with the request to supernode.

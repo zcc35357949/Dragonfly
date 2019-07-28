@@ -171,14 +171,21 @@ func (proxy *Proxy) mirrorRegistry(w http.ResponseWriter, r *http.Request) {
 	reverseProxy.ServeHTTP(w, r)
 }
 
+// tls config with detail info such as ca paths.
+type TlsConfig struct {
+	CaPaths []string
+	*tls.Config
+}
+
 // remoteConfig returns the tls.Config used to connect to the given remote host.
 // If the host should not be hijacked, nil will be returned.
-func (proxy *Proxy) remoteConfig(host string) *tls.Config {
+func (proxy *Proxy) remoteConfig(host string) *TlsConfig {
 	for _, h := range proxy.httpsHosts {
 		if h.Regx.MatchString(host) {
-			config := &tls.Config{InsecureSkipVerify: h.Insecure}
+			config := &TlsConfig{Config: &tls.Config{InsecureSkipVerify: h.Insecure}}
 			if h.Certs != nil {
 				config.RootCAs = h.Certs.CertPool
+				config.CaPaths = h.Certs.Files
 			}
 			return config
 		}
@@ -220,12 +227,13 @@ func (proxy *Proxy) handleHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (proxy *Proxy) roundTripper(tlsConfig *tls.Config) http.RoundTripper {
+func (proxy *Proxy) roundTripper(tlsConfig *TlsConfig) http.RoundTripper {
 	rt, _ := transport.New(
 		transport.WithDownloader(proxy.downloadFactory()),
-		transport.WithTLS(tlsConfig),
+		transport.WithTLS(tlsConfig.Config),
 		transport.WithCondition(proxy.shouldUseDfget),
 	)
+	rt.DfgetCaCert = tlsConfig.CaPaths
 	return rt
 }
 
@@ -296,7 +304,7 @@ func (proxy *Proxy) handleHTTPS(w http.ResponseWriter, r *http.Request) {
 	}
 	defer sConn.Close()
 
-	cConn, err := tls.Dial("tcp", r.Host, cConfig)
+	cConn, err := tls.Dial("tcp", r.Host, cConfig.Config)
 	if err != nil {
 		logrus.Errorf("dial failed for %s: %v", r.Host, err)
 		return

@@ -166,7 +166,7 @@ type Config struct {
 	Pattern string `json:"pattern,omitempty"`
 
 	// CA certificate to verify when supernode download from source
-	Cacert string `json:"cacert,omitempty"`
+	Cacert []string `json:"cacert,omitempty"`
 
 	// Filter filter some query params of url, use char '&' to separate different params.
 	// eg: -f 'key&sign' will filter 'key' and 'sign' query param.

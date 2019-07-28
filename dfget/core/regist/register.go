@@ -145,9 +145,9 @@ func (s *supernodeRegister) constructRegisterRequest(port int) *types.RegisterRe
 		req.Identifier = cfg.Identifier
 	}
 
-	if cfg.Cacert != "" {
-		cabytes, _ := ioutil.ReadFile(cfg.Cacert)
-		req.RootCAs = cabytes
+	for _, certPath := range cfg.Cacert {
+		caBytes, _ := ioutil.ReadFile(certPath)
+		req.RootCAs = append(req.RootCAs, caBytes)
 	}
 
 	return req

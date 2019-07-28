@@ -44,6 +44,7 @@ type DFRoundTripper struct {
 	Round          *http.Transport
 	Round2         http.RoundTripper
 	ShouldUseDfget func(req *http.Request) bool
+	DfgetCaCert    []string
 	Downloader     downloader.Interface
 }
 
@@ -120,7 +121,7 @@ func (roundTripper *DFRoundTripper) RoundTrip(req *http.Request) (*http.Response
 		// result for different requests
 		req.Header.Del("Accept-Encoding")
 		logrus.Debugf("round trip with dfget: %s", req.URL.String())
-		if res, err := roundTripper.download(req, req.URL.String()); err == nil || !exception.IsNotAuth(err) {
+		if res, err := roundTripper.download(req, req.URL.String(), roundTripper.Round.TLSClientConfig.InsecureSkipVerify, roundTripper.DfgetCaCert); err == nil || !exception.IsNotAuth(err) {
 			return res, err
 		}
 	}
@@ -132,8 +133,8 @@ func (roundTripper *DFRoundTripper) RoundTrip(req *http.Request) (*http.Response
 }
 
 // download uses dfget to download
-func (roundTripper *DFRoundTripper) download(req *http.Request, urlString string) (*http.Response, error) {
-	dstPath, err := roundTripper.downloadByGetter(urlString, req.Header, uuid.New())
+func (roundTripper *DFRoundTripper) download(req *http.Request, urlString string, insecure bool, cacerts []string) (*http.Response, error) {
+	dstPath, err := roundTripper.downloadByGetter(urlString, req.Header, uuid.New(), insecure, cacerts)
 	if err != nil {
 		logrus.Errorf("download fail: %v", err)
 		return nil, err
@@ -155,9 +156,9 @@ func (roundTripper *DFRoundTripper) download(req *http.Request, urlString string
 }
 
 // downloadByGetter is to download file by DFGetter
-func (roundTripper *DFRoundTripper) downloadByGetter(url string, header map[string][]string, name string) (string, error) {
+func (roundTripper *DFRoundTripper) downloadByGetter(url string, header map[string][]string, name string, insecure bool, cacerts []string) (string, error) {
 	logrus.Infof("start download url:%s to %s in repo", url, name)
-	return roundTripper.Downloader.Download(url, header, name)
+	return roundTripper.Downloader.Download(url, header, name, insecure, cacerts)
 }
 
 // needUseGetter is the default value for ShouldUseDfget, which downloads all

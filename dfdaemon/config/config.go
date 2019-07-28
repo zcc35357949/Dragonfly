@@ -272,11 +272,11 @@ func (cp *CertPool) UnmarshalJSON(b []byte) error {
 }
 
 func (cp *CertPool) unmarshal(unmarshal func(interface{}) error) error {
-	if err := unmarshal(&cp.files); err != nil {
+	if err := unmarshal(&cp.Files); err != nil {
 		return err
 	}
 
-	pool, err := certPoolFromFiles(cp.files...)
+	pool, err := certPoolFromFiles(cp.Files...)
 	if err != nil {
 		return err
 	}
@@ -287,12 +287,12 @@ func (cp *CertPool) unmarshal(unmarshal func(interface{}) error) error {
 
 // MarshalJSON implements json.Marshaller to print the cert pool
 func (cp *CertPool) MarshalJSON() ([]byte, error) {
-	return json.Marshal(cp.files)
+	return json.Marshal(cp.Files)
 }
 
 // MarshalYAML implements yaml.Marshaller to print the cert pool
 func (cp *CertPool) MarshalYAML() (interface{}, error) {
-	return cp.files, nil
+	return cp.Files, nil
 }
 
 // Regexp is simple wrapper around regexp.Regexp to make it unmarshallable from a string
