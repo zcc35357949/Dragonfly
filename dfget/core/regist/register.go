@@ -28,7 +28,6 @@ import (
 	"github.com/dragonflyoss/Dragonfly/dfget/types"
 	"github.com/dragonflyoss/Dragonfly/version"
 	"github.com/sirupsen/logrus"
-	"crypto/tls"
 	"io/ioutil"
 )
 

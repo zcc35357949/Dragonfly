@@ -16,6 +16,13 @@ import (
 // TaskCreateRequest task create request
 // swagger:model TaskCreateRequest
 type TaskCreateRequest struct {
+	TaskCreateRequestBase
+
+	// set tls config by ca to download the remote source file
+	RootCAs [][]byte `json:"root_cas,omitempty"`
+}
+
+type TaskCreateRequestBase struct {
 	// CID means the client ID. It maps to the specific dfget process.
 	// When user wishes to download an image/file, user would start a dfget process to do this.
 	// This dfget is treated a client and carries a client ID.
@@ -38,9 +45,6 @@ type TaskCreateRequest struct {
 
 	// tells whether skip secure verify when supernode download the remote source file
 	Insecure bool `json:"insecure,omitempty"`
-
-	// set tls config by ca to download the remote source file
-	RootCAs [][]byte `json:"root_cas,omitempty"`
 
 	// filter is used to filter request queries in URL.
 	// For example, when a user wants to start to download a task which has a remote URL of

@@ -76,26 +76,28 @@ func (s *Server) registry(ctx context.Context, rw http.ResponseWriter, req *http
 
 	peerID := peerCreateResponse.ID
 	taskCreateRequest := &types.TaskCreateRequest{
-		CID:         request.CID,
-		CallSystem:  request.CallSystem,
-		Dfdaemon:    request.Dfdaemon,
-		Insecure:    request.Insecure,
+		TaskCreateRequestBase: types.TaskCreateRequestBase{
+			CID:         request.CID,
+			CallSystem:  request.CallSystem,
+			Dfdaemon:    request.Dfdaemon,
+			Insecure:    request.Insecure,
+			Headers:     cutil.ConvertHeaders(request.Headers),
+			Identifier:  request.Identifier,
+			Md5:         request.Md5,
+			Path:        request.Path,
+			PeerID:      peerID,
+			RawURL:      request.RawURL,
+			TaskURL:     request.TaskURL,
+			SupernodeIP: request.SuperNodeIP.String(),
+		},
 		RootCAs:     request.RootCAs,
-		Headers:     cutil.ConvertHeaders(request.Headers),
-		Identifier:  request.Identifier,
-		Md5:         request.Md5,
-		Path:        request.Path,
-		PeerID:      peerID,
-		RawURL:      request.RawURL,
-		TaskURL:     request.TaskURL,
-		SupernodeIP: request.SuperNodeIP.String(),
 	}
 	resp, err := s.TaskMgr.Register(ctx, taskCreateRequest)
 	if err != nil {
-		logrus.Errorf("failed to register task %+v: %v", taskCreateRequest, err)
+		logrus.Errorf("failed to register task %+v: %v", taskCreateRequest.TaskCreateRequestBase, err)
 		return err
 	}
-	logrus.Infof("success to register task %+v", taskCreateRequest)
+	logrus.Infof("success to register task %+v", taskCreateRequest.TaskCreateRequestBase)
 	return EncodeResponse(rw, http.StatusOK, &types.ResultInfo{
 		Code: constants.Success,
 		Msg:  constants.GetMsgByCode(constants.Success),

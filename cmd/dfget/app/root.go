@@ -215,7 +215,7 @@ func initFlags() {
 
 	flagSet.StringVar(&cfg.CallSystem, "callsystem", "",
 		"The name of dfget caller which is for debugging. Once set, it will be passed to all components around the request to make debugging easy")
-	flagSet.StringSlice(&cfg.Cacert, "cacert", "",
+	flagSet.StringSliceVar(&cfg.Cacert, "cacert", nil,
 		"The cacert file which is used to verify remote server when supernode download from source.")
 	flagSet.StringVarP(&cfg.Pattern, "pattern", "p", "p2p",
 		"download pattern, must be p2p/cdn/source, cdn and source do not support flag --totallimit")
