@@ -29,7 +29,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
 	dutil "github.com/dragonflyoss/Dragonfly/supernode/daemon/util"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/util"
 
 	"github.com/pkg/errors"
@@ -75,7 +75,7 @@ func newMetrics(register prometheus.Registerer) *metrics {
 type Manager struct {
 	cfg          *config.Config
 	metrics      *metrics
-	originClient httpclient.OriginHTTPClient
+	originClient originclient.OriginClient
 
 	// store object
 	taskStore               *dutil.Store
@@ -93,7 +93,7 @@ type Manager struct {
 // NewManager returns a new Manager Object.
 func NewManager(cfg *config.Config, peerMgr mgr.PeerMgr, dfgetTaskMgr mgr.DfgetTaskMgr,
 	progressMgr mgr.ProgressMgr, cdnMgr mgr.CDNMgr, schedulerMgr mgr.SchedulerMgr,
-	originClient httpclient.OriginHTTPClient, register prometheus.Registerer) (*Manager, error) {
+	originClient originclient.OriginClient, register prometheus.Registerer) (*Manager, error) {
 	return &Manager{
 		cfg:                     cfg,
 		taskStore:               dutil.NewStore(),

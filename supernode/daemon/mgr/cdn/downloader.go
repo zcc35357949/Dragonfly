@@ -18,6 +18,7 @@ package cdn
 
 import (
 	"context"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -26,7 +27,7 @@ import (
 	errorType "github.com/dragonflyoss/Dragonfly/pkg/errortypes"
 	"github.com/dragonflyoss/Dragonfly/pkg/httputils"
 	"github.com/dragonflyoss/Dragonfly/pkg/rangeutils"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient/httpclient"
 )
 
 // download downloads the file from the original address and
@@ -35,7 +36,7 @@ import (
 // If the returned error is nil, the Response will contain a non-nil
 // Body which the caller is expected to close.
 func (cm *Manager) download(ctx context.Context, taskID, url string, headers map[string]string,
-	startPieceNum int, httpFileLength int64, pieceContSize int32) (*http.Response, error) {
+	startPieceNum int, httpFileLength int64, pieceContSize int32) (*originclient.FileResult, error) {
 	checkCode := []int{http.StatusOK, http.StatusPartialContent}
 
 	if startPieceNum > 0 {

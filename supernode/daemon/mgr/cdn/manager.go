@@ -25,13 +25,12 @@ import (
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/pkg/limitreader"
 	"github.com/dragonflyoss/Dragonfly/pkg/metricsutils"
-	"github.com/dragonflyoss/Dragonfly/pkg/netutils"
 	"github.com/dragonflyoss/Dragonfly/pkg/rangeutils"
 	"github.com/dragonflyoss/Dragonfly/pkg/ratelimiter"
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 	"github.com/dragonflyoss/Dragonfly/supernode/util"
 
@@ -88,7 +87,7 @@ type Manager struct {
 	metaDataManager *fileMetaDataManager
 	cdnReporter     *reporter
 	detector        *cacheDetector
-	originClient    httpclient.OriginHTTPClient
+	originClient    originclient.OriginClient
 	pieceMD5Manager *pieceMD5Mgr
 	writer          *superWriter
 	metrics         *metrics
@@ -96,12 +95,12 @@ type Manager struct {
 
 // NewManager returns a new Manager.
 func NewManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr.ProgressMgr,
-	originClient httpclient.OriginHTTPClient, register prometheus.Registerer) (mgr.CDNMgr, error) {
+	originClient originclient.OriginClient, register prometheus.Registerer) (mgr.CDNMgr, error) {
 	return newManager(cfg, cacheStore, progressManager, originClient, register)
 }
 
 func newManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr.ProgressMgr,
-	originClient httpclient.OriginHTTPClient, register prometheus.Registerer) (*Manager, error) {
+	originClient originclient.OriginClient, register prometheus.Registerer) (*Manager, error) {
 	rateLimiter := ratelimiter.NewRateLimiter(ratelimiter.TransRate(int64(cfg.MaxBandwidth-cfg.SystemReservedBandwidth)), 2)
 	metaDataManager := newFileMetaDataManager(cacheStore)
 	pieceMD5Manager := newpieceMD5Mgr()
@@ -155,16 +154,16 @@ func (cm *Manager) TriggerCDN(ctx context.Context, task *types.TaskInfo) (*types
 	pieceContSize := task.PieceSize - config.PieceWrapSize
 
 	// start to download the source file
-	resp, err := cm.download(ctx, task.ID, task.RawURL, task.Headers, startPieceNum, httpFileLength, pieceContSize)
+	file, err := cm.download(ctx, task.ID, task.RawURL, task.Headers, startPieceNum, httpFileLength, pieceContSize)
 	cm.metrics.cdnDownloadCount.WithLabelValues().Inc()
 	if err != nil {
 		cm.metrics.cdnDownloadFailCount.WithLabelValues().Inc()
 		return getUpdateTaskInfoWithStatusOnly(types.TaskInfoCdnStatusFAILED), err
 	}
-	defer resp.Body.Close()
+	defer file.Body.Close()
 
-	cm.updateLastModifiedAndETag(ctx, task.ID, resp.Header.Get("Last-Modified"), resp.Header.Get("Etag"))
-	reader := limitreader.NewLimitReaderWithLimiterAndMD5Sum(resp.Body, cm.limiter, fileMD5)
+	cm.updateLastModifiedAndETag(ctx, task.ID, file.Etag, file.LastModified)
+	reader := limitreader.NewLimitReaderWithLimiterAndMD5Sum(file.Body, cm.limiter, fileMD5)
 	downloadMetadata, err := cm.writer.startWriter(ctx, cm.cfg, reader, task, startPieceNum, httpFileLength, pieceContSize)
 	if err != nil {
 		logrus.Errorf("failed to write for task %s: %v", task.ID, err)
@@ -303,9 +302,8 @@ func (cm *Manager) handleCDNResult(ctx context.Context, task *types.TaskInfo, re
 	return true, nil
 }
 
-func (cm *Manager) updateLastModifiedAndETag(ctx context.Context, taskID, lastModified, eTag string) {
-	lastModifiedInt, _ := netutils.ConvertTimeStringToInt(lastModified)
-	if err := cm.metaDataManager.updateLastModifiedAndETag(ctx, taskID, lastModifiedInt, eTag); err != nil {
+func (cm *Manager) updateLastModifiedAndETag(ctx context.Context, taskID, eTag string, lastModified int64) {
+	if err := cm.metaDataManager.updateLastModifiedAndETag(ctx, taskID, lastModified, eTag); err != nil {
 		logrus.Errorf("failed to update LastModified(%s) and ETag(%s) for taskID %s: %v", lastModified, eTag, taskID, err)
 	}
 	logrus.Infof("success to update LastModified(%s) and ETag(%s) for taskID: %s", lastModified, eTag, taskID)

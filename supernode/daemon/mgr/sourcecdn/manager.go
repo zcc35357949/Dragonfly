@@ -22,7 +22,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -41,7 +41,7 @@ type Manager struct {
 
 // NewManager returns a new Manager.
 func NewManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr.ProgressMgr,
-	originClient httpclient.OriginHTTPClient, register prometheus.Registerer) (mgr.CDNMgr, error) {
+	originClient originclient.OriginClient, register prometheus.Registerer) (mgr.CDNMgr, error) {
 	return &Manager{
 		cfg:             cfg,
 		progressManager: progressManager,

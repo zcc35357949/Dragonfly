@@ -29,25 +29,25 @@ import (
 )
 
 func init() {
-	check.Suite(&OriginHTTPClientTestSuite{})
+	check.Suite(&OriginClientTestSuite{})
 }
 
 func Test(t *testing.T) {
 	check.TestingT(t)
 }
 
-type OriginHTTPClientTestSuite struct {
-	client *OriginClient
+type OriginClientTestSuite struct {
+	client *OriginHTTPClient
 }
 
-func (s *OriginHTTPClientTestSuite) SetUpSuite(c *check.C) {
-	s.client = NewOriginClient().(*OriginClient)
+func (s *OriginClientTestSuite) SetUpSuite(c *check.C) {
+	s.client = NewOriginHTTPClient().(*OriginHTTPClient)
 }
 
-func (s *OriginHTTPClientTestSuite) TearDownSuite(c *check.C) {
+func (s *OriginClientTestSuite) TearDownSuite(c *check.C) {
 }
 
-func (s *OriginHTTPClientTestSuite) TestHTTPWithHeaders(c *check.C) {
+func (s *OriginClientTestSuite) TestHTTPWithHeaders(c *check.C) {
 	testString := "test bytes"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -83,7 +83,7 @@ func (t *testTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}, nil
 }
 
-func (s *OriginHTTPClientTestSuite) TestRegisterTLSConfig(c *check.C) {
+func (s *OriginClientTestSuite) TestRegisterTLSConfig(c *check.C) {
 	protocol := "test"
 	httputils.RegisterProtocol(protocol, &testTransport{})
 	s.client.RegisterTLSConfig(protocol+"://test/test", true, nil)
@@ -99,7 +99,7 @@ func (s *OriginHTTPClientTestSuite) TestRegisterTLSConfig(c *check.C) {
 	c.Assert(resp.ContentLength, check.Equals, int64(-1))
 }
 
-func (s *OriginHTTPClientTestSuite) TestCopyHeader(c *check.C) {
+func (s *OriginClientTestSuite) TestCopyHeader(c *check.C) {
 	dst := CopyHeader(nil, nil)
 	c.Check(dst, check.NotNil)
 	c.Check(len(dst), check.Equals, 0)

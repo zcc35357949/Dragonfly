@@ -19,6 +19,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient/httpclient"
 	"net"
 	"net/http"
 	"time"
@@ -33,7 +34,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/progress"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/scheduler"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/task"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 	"github.com/dragonflyoss/Dragonfly/version"
 
@@ -54,7 +55,7 @@ type Server struct {
 	PieceErrorMgr mgr.PieceErrorMgr
 	PreheatMgr    mgr.PreheatManager
 
-	originClient httpclient.OriginHTTPClient
+	originClient originclient.OriginClient
 }
 
 // New creates a brand new server instance.
@@ -74,7 +75,7 @@ func New(cfg *config.Config, logger *logrus.Logger, register prometheus.Register
 		return nil, err
 	}
 
-	originClient := httpclient.NewOriginClient()
+	originClient := httpclient.NewOriginHTTPClient()
 	peerMgr, err := peer.NewManager(register)
 	if err != nil {
 		return nil, err

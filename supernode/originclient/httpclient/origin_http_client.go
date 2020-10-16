@@ -31,30 +31,20 @@ import (
 	"github.com/dragonflyoss/Dragonfly/pkg/httputils"
 	"github.com/dragonflyoss/Dragonfly/pkg/netutils"
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/pkg/errors"
 )
 
-type StatusCodeChecker func(int) bool
-
-// OriginHTTPClient supply apis that interact with the source.
-type OriginHTTPClient interface {
-	RegisterTLSConfig(rawURL string, insecure bool, caBlock []strfmt.Base64)
-	GetContentLength(url string, headers map[string]string) (int64, int, error)
-	IsSupportRange(url string, headers map[string]string) (bool, error)
-	IsExpired(url string, headers map[string]string, lastModified int64, eTag string) (bool, error)
-	Download(url string, headers map[string]string, checkCode StatusCodeChecker) (*http.Response, error)
-}
-
-// OriginClient is an implementation of the interface of OriginHTTPClient.
-type OriginClient struct {
+// OriginClient is an implementation of the interface of OriginClient.
+type OriginHTTPClient struct {
 	clientMap         *sync.Map
 	defaultHTTPClient *http.Client
 }
 
 // NewOriginClient returns a new OriginClient.
-func NewOriginClient() OriginHTTPClient {
+func NewOriginHTTPClient() originclient.OriginClient {
 	defaultTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
@@ -68,7 +58,7 @@ func NewOriginClient() OriginHTTPClient {
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 	httputils.RegisterProtocolOnTransport(defaultTransport)
-	return &OriginClient{
+	return &OriginHTTPClient{
 		clientMap: &sync.Map{},
 		defaultHTTPClient: &http.Client{
 			Transport: defaultTransport,
@@ -79,7 +69,7 @@ func NewOriginClient() OriginHTTPClient {
 // RegisterTLSConfig saves tls config into map as http client.
 // tlsMap:
 // key->host value->*http.Client
-func (client *OriginClient) RegisterTLSConfig(rawURL string, insecure bool, caBlock []strfmt.Base64) {
+func (client *OriginHTTPClient) RegisterTLSConfig(rawURL string, insecure bool, caBlock []strfmt.Base64) {
 	url, err := netUrl.Parse(rawURL)
 	if err != nil {
 		return
@@ -119,7 +109,7 @@ func (client *OriginClient) RegisterTLSConfig(rawURL string, insecure bool, caBl
 }
 
 // GetContentLength sends a head request to get file length.
-func (client *OriginClient) GetContentLength(url string, headers map[string]string) (int64, int, error) {
+func (client *OriginHTTPClient) GetContentLength(url string, headers map[string]string) (int64, int, error) {
 	// send request
 	resp, err := client.HTTPWithHeaders(http.MethodGet, url, headers, 4*time.Second)
 	if err != nil {
@@ -131,7 +121,7 @@ func (client *OriginClient) GetContentLength(url string, headers map[string]stri
 }
 
 // IsSupportRange checks if the source url support partial requests.
-func (client *OriginClient) IsSupportRange(url string, headers map[string]string) (bool, error) {
+func (client *OriginHTTPClient) IsSupportRange(url string, headers map[string]string) (bool, error) {
 	// set headers: headers is a reference to map, should not change it
 	copied := CopyHeader(nil, headers)
 	copied["Range"] = "bytes=0-0"
@@ -150,7 +140,7 @@ func (client *OriginClient) IsSupportRange(url string, headers map[string]string
 }
 
 // IsExpired checks if a resource received or stored is the same.
-func (client *OriginClient) IsExpired(url string, headers map[string]string, lastModified int64, eTag string) (bool, error) {
+func (client *OriginHTTPClient) IsExpired(url string, headers map[string]string, lastModified int64, eTag string) (bool, error) {
 	if lastModified <= 0 && stringutils.IsEmptyStr(eTag) {
 		return true, nil
 	}
@@ -176,7 +166,7 @@ func (client *OriginClient) IsExpired(url string, headers map[string]string, las
 }
 
 // Download downloads the file from the original address
-func (client *OriginClient) Download(url string, headers map[string]string, checkCode StatusCodeChecker) (*http.Response, error) {
+func (client *OriginHTTPClient) Download(url string, headers map[string]string, checkCode originclient.StatusCodeChecker) (*originclient.FileResult, error) {
 	// TODO: add timeout
 	resp, err := client.HTTPWithHeaders(http.MethodGet, url, headers, 0)
 	if err != nil {
@@ -184,13 +174,18 @@ func (client *OriginClient) Download(url string, headers map[string]string, chec
 	}
 
 	if checkCode(resp.StatusCode) {
-		return resp, nil
+		lastModifiedInt, _ := netutils.ConvertTimeStringToInt(resp.Header.Get("Last-Modified"))
+		return &originclient.FileResult{
+			Body: resp.Body,
+			LastModified: lastModifiedInt,
+			Etag: resp.Header.Get("Etag"),
+		}, nil
 	}
 	return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 }
 
 // HTTPWithHeaders uses host-matched client to request the origin resource.
-func (client *OriginClient) HTTPWithHeaders(method, url string, headers map[string]string, timeout time.Duration) (*http.Response, error) {
+func (client *OriginHTTPClient) HTTPWithHeaders(method, url string, headers map[string]string, timeout time.Duration) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err

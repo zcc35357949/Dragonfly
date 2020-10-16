@@ -22,7 +22,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/mock"
-	cMock "github.com/dragonflyoss/Dragonfly/supernode/httpclient/mock"
+	cMock "github.com/dragonflyoss/Dragonfly/supernode/originclient/httpclient/mock"
 
 	"github.com/go-check/check"
 	"github.com/golang/mock/gomock"
@@ -41,7 +41,7 @@ type TaskUtilTestSuite struct {
 	mockPeerMgr      *mock.MockPeerMgr
 	mockProgressMgr  *mock.MockProgressMgr
 	mockSchedulerMgr *mock.MockSchedulerMgr
-	mockOriginClient *cMock.MockOriginHTTPClient
+	mockOriginClient *cMock.MockOriginClient
 
 	taskManager *Manager
 }
@@ -54,7 +54,7 @@ func (s *TaskUtilTestSuite) SetUpSuite(c *check.C) {
 	s.mockDfgetTaskMgr = mock.NewMockDfgetTaskMgr(s.mockCtl)
 	s.mockProgressMgr = mock.NewMockProgressMgr(s.mockCtl)
 	s.mockSchedulerMgr = mock.NewMockSchedulerMgr(s.mockCtl)
-	s.mockOriginClient = cMock.NewMockOriginHTTPClient(s.mockCtl)
+	s.mockOriginClient = cMock.NewMockOriginClient(s.mockCtl)
 	s.taskManager, _ = NewManager(config.NewConfig(), s.mockPeerMgr, s.mockDfgetTaskMgr,
 		s.mockProgressMgr, s.mockCDNMgr, s.mockSchedulerMgr, s.mockOriginClient, prometheus.NewRegistry())
 

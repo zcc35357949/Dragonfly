@@ -21,7 +21,7 @@ import (
 
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 
 	"github.com/pkg/errors"
@@ -31,10 +31,10 @@ import (
 type cacheDetector struct {
 	cacheStore      *store.Store
 	metaDataManager *fileMetaDataManager
-	originClient    httpclient.OriginHTTPClient
+	originClient    originclient.OriginClient
 }
 
-func newCacheDetector(cacheStore *store.Store, metaDataManager *fileMetaDataManager, originClient httpclient.OriginHTTPClient) *cacheDetector {
+func newCacheDetector(cacheStore *store.Store, metaDataManager *fileMetaDataManager, originClient originclient.OriginClient) *cacheDetector {
 	return &cacheDetector{
 		cacheStore:      cacheStore,
 		metaDataManager: metaDataManager,

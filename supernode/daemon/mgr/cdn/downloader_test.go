@@ -29,7 +29,7 @@ import (
 	"github.com/dragonflyoss/Dragonfly/pkg/httputils"
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
-	"github.com/dragonflyoss/Dragonfly/supernode/httpclient"
+	"github.com/dragonflyoss/Dragonfly/supernode/originclient/httpclient"
 
 	"github.com/go-check/check"
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,7 +47,7 @@ func init() {
 }
 
 func (s *CDNDownloadTestSuite) TestDownload(c *check.C) {
-	cm, _ := newManager(config.NewConfig(), nil, nil, httpclient.NewOriginClient(), prometheus.DefaultRegisterer)
+	cm, _ := newManager(config.NewConfig(), nil, nil, httpclient.NewOriginHTTPClient(), prometheus.DefaultRegisterer)
 	bytes := []byte("hello world")
 	bytesLength := int64(len(bytes))
 
