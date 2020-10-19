@@ -23,7 +23,7 @@ import (
 
 var _ Preheater = &BasePreheater{}
 
-type BasePreheater struct {}
+type BasePreheater struct{}
 
 /**
  * The type of this preheater
@@ -35,7 +35,7 @@ func (p *BasePreheater) Type() string {
 /**
  * Create a worker to preheat the task.
  */
-func (p *BasePreheater) NewWorker(task *mgr.PreheatTask , service *PreheatService) IWorker {
+func (p *BasePreheater) NewWorker(task *mgr.PreheatTask, service *PreheatService) IWorker {
 	panic("not implement")
 }
 

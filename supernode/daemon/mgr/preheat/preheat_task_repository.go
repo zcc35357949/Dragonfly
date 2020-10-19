@@ -22,9 +22,9 @@ import (
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
 )
 
-const(
+const (
 	// preheat image cache one week
-	EXPIRED_TIME = 7 * 24 * 3600 * 1000;
+	EXPIRED_TIME = 7 * 24 * 3600 * 1000
 )
 
 type PreheatTaskRepository struct {
@@ -38,7 +38,7 @@ func NewPreheatTaskRepository() *PreheatTaskRepository {
 	return r
 }
 
-func(r *PreheatTaskRepository) Get(id string) *mgr.PreheatTask {
+func (r *PreheatTaskRepository) Get(id string) *mgr.PreheatTask {
 	t, ok := r.preheatTasks.Load(id)
 	if ok {
 		return t.(*mgr.PreheatTask)
@@ -46,30 +46,30 @@ func(r *PreheatTaskRepository) Get(id string) *mgr.PreheatTask {
 	return nil
 }
 
-func(r *PreheatTaskRepository) GetAll() []*mgr.PreheatTask {
+func (r *PreheatTaskRepository) GetAll() []*mgr.PreheatTask {
 	list := make([]*mgr.PreheatTask, 0)
-	r.preheatTasks.Range(func(key, value interface{}) bool{
+	r.preheatTasks.Range(func(key, value interface{}) bool {
 		list = append(list, value.(*mgr.PreheatTask))
 		return true
 	})
 	return list
 }
 
-func(r *PreheatTaskRepository) GetAllIds() []string {
+func (r *PreheatTaskRepository) GetAllIds() []string {
 	list := make([]string, 0)
-	r.preheatTasks.Range(func(key, value interface{}) bool{
+	r.preheatTasks.Range(func(key, value interface{}) bool {
 		list = append(list, key.(string))
 		return true
 	})
 	return list
 }
 
-func(r *PreheatTaskRepository) Add(task *mgr.PreheatTask) (*mgr.PreheatTask, error) {
+func (r *PreheatTaskRepository) Add(task *mgr.PreheatTask) (*mgr.PreheatTask, error) {
 	t, _ := r.preheatTasks.LoadOrStore(task.ID, task)
 	return t.(*mgr.PreheatTask), nil
 }
 
-func(r *PreheatTaskRepository) Update(id string, task *mgr.PreheatTask) bool {
+func (r *PreheatTaskRepository) Update(id string, task *mgr.PreheatTask) bool {
 	v, _ := r.preheatTasks.Load(id)
 	t, _ := v.(*mgr.PreheatTask)
 	if t != nil {
@@ -93,13 +93,13 @@ func(r *PreheatTaskRepository) Update(id string, task *mgr.PreheatTask) bool {
 	return false
 }
 
-func(r *PreheatTaskRepository) Delete(id string) bool {
+func (r *PreheatTaskRepository) Delete(id string) bool {
 	_, existed := r.preheatTasks.Load(id)
 	r.preheatTasks.Delete(id)
 	return existed
 }
 
-func(r *PreheatTaskRepository) IsExpired(id string) bool {
+func (r *PreheatTaskRepository) IsExpired(id string) bool {
 	t, _ := r.preheatTasks.Load(id)
 	if t == nil {
 		return false
@@ -110,4 +110,3 @@ func(r *PreheatTaskRepository) IsExpired(id string) bool {
 func (r *PreheatTaskRepository) expired(timestamp int64) bool {
 	return time.Now().UnixNano()/int64(time.Millisecond) > timestamp+EXPIRED_TIME
 }
-

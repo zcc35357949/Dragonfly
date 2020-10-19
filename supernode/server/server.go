@@ -19,7 +19,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/dragonflyoss/Dragonfly/supernode/originclient/httpclient"
 	"net"
 	"net/http"
 	"time"
@@ -34,7 +33,6 @@ import (
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/progress"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/scheduler"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr/task"
-	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 	"github.com/dragonflyoss/Dragonfly/version"
 
@@ -55,7 +53,7 @@ type Server struct {
 	PieceErrorMgr mgr.PieceErrorMgr
 	PreheatMgr    mgr.PreheatManager
 
-	originClient originclient.OriginClient
+	originMgr *mgr.OriginClientManager
 }
 
 // New creates a brand new server instance.
@@ -75,7 +73,7 @@ func New(cfg *config.Config, logger *logrus.Logger, register prometheus.Register
 		return nil, err
 	}
 
-	originClient := httpclient.NewOriginHTTPClient()
+	originClientMgr := mgr.NewOriginClientManager()
 	peerMgr, err := peer.NewManager(register)
 	if err != nil {
 		return nil, err
@@ -96,13 +94,13 @@ func New(cfg *config.Config, logger *logrus.Logger, register prometheus.Register
 		return nil, err
 	}
 
-	cdnMgr, err := mgr.GetCDNManager(cfg, storeLocal, progressMgr, originClient, register)
+	cdnMgr, err := mgr.GetCDNManager(cfg, storeLocal, progressMgr, originClientMgr, register)
 	if err != nil {
 		return nil, err
 	}
 
 	taskMgr, err := task.NewManager(cfg, peerMgr, dfgetTaskMgr, progressMgr, cdnMgr,
-		schedulerMgr, originClient, register)
+		schedulerMgr, originClientMgr, register)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +129,7 @@ func New(cfg *config.Config, logger *logrus.Logger, register prometheus.Register
 		GCMgr:         gcMgr,
 		PieceErrorMgr: pieceErrorMgr,
 		PreheatMgr:    preheatMgr,
-		originClient:  originClient,
+		originMgr:     originClientMgr,
 	}, nil
 }
 

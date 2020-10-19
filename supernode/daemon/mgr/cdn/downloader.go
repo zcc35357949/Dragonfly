@@ -57,7 +57,7 @@ func (cm *Manager) download(ctx context.Context, taskID, url string, headers map
 
 	logrus.Infof("start to download for taskId(%s) with fileUrl: %s"+
 		" header: %v checkCode: %d", taskID, url, headers, checkCode)
-	return cm.originClient.Download(url, headers, checkStatusCode(checkCode))
+	return cm.originMgr.GetOriginClient(url).Download(url, headers, checkStatusCode(checkCode))
 }
 
 func hasRange(headers map[string]string) bool {

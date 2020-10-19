@@ -31,7 +31,7 @@ import (
 )
 
 func init() {
-	RegisterPreheater("image", &ImagePreheat{BasePreheater:new(BasePreheater)})
+	RegisterPreheater("image", &ImagePreheat{BasePreheater: new(BasePreheater)})
 }
 
 var IMAGE_MANIFESTS_PATTERN, _ = regexp.Compile("^(.*)://(.*)/v2/(.*)/manifests/(.*)")
@@ -183,7 +183,7 @@ func (w *ImageWorker) getAuthToken(header http.Header) (token string) {
 	}
 	var values []string
 	for k, v := range header {
-		if strings.ToLower(k) == "www-authenticate"  {
+		if strings.ToLower(k) == "www-authenticate" {
 			values = v
 		}
 	}

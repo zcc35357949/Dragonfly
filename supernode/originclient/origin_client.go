@@ -33,7 +33,8 @@ type OriginClient interface {
 }
 
 type FileResult struct {
-	Body io.ReadCloser
+	Body         io.ReadCloser
 	LastModified int64
-	Etag string
+	Etag         string
+	Size         int64
 }

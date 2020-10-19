@@ -22,14 +22,13 @@ import (
 
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
-	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type CDNBuilder func(cfg *config.Config, cacheStore *store.Store, progressManager ProgressMgr,
-	originClient originclient.OriginClient, register prometheus.Registerer) (CDNMgr, error)
+	originManager *OriginClientManager, register prometheus.Registerer) (CDNMgr, error)
 
 var cdnBuilderMap = make(map[config.CDNPattern]CDNBuilder)
 
@@ -38,7 +37,7 @@ func Register(name config.CDNPattern, builder CDNBuilder) {
 }
 
 func GetCDNManager(cfg *config.Config, cacheStore *store.Store, progressManager ProgressMgr,
-	originClient originclient.OriginClient, register prometheus.Registerer) (CDNMgr, error) {
+	originManager *OriginClientManager, register prometheus.Registerer) (CDNMgr, error) {
 	name := cfg.CDNPattern
 	if name == "" {
 		name = config.CDNPatternLocal
@@ -49,7 +48,7 @@ func GetCDNManager(cfg *config.Config, cacheStore *store.Store, progressManager 
 		return nil, fmt.Errorf("unexpected cdn pattern(%s) which must be in [\"local\", \"source\"]", name)
 	}
 
-	return cdnBuilder(cfg, cacheStore, progressManager, originClient, register)
+	return cdnBuilder(cfg, cacheStore, progressManager, originManager, register)
 }
 
 // CDNMgr as an interface defines all operations against CDN and

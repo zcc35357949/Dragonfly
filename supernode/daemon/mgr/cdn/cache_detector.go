@@ -18,10 +18,10 @@ package cdn
 
 import (
 	"context"
+	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
 
 	"github.com/dragonflyoss/Dragonfly/apis/types"
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
-	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 
 	"github.com/pkg/errors"
@@ -31,14 +31,14 @@ import (
 type cacheDetector struct {
 	cacheStore      *store.Store
 	metaDataManager *fileMetaDataManager
-	originClient    originclient.OriginClient
+	originMgr       *mgr.OriginClientManager
 }
 
-func newCacheDetector(cacheStore *store.Store, metaDataManager *fileMetaDataManager, originClient originclient.OriginClient) *cacheDetector {
+func newCacheDetector(cacheStore *store.Store, metaDataManager *fileMetaDataManager, originMgr *mgr.OriginClientManager) *cacheDetector {
 	return &cacheDetector{
 		cacheStore:      cacheStore,
 		metaDataManager: metaDataManager,
-		originClient:    originClient,
+		originMgr:       originMgr,
 	}
 }
 
@@ -71,7 +71,7 @@ func (cd *cacheDetector) detectCache(ctx context.Context, task *types.TaskInfo) 
 }
 
 func (cd *cacheDetector) parseBreakNum(ctx context.Context, task *types.TaskInfo, metaData *fileMetaData) int {
-	expired, err := cd.originClient.IsExpired(task.RawURL, task.Headers, metaData.LastModified, metaData.ETag)
+	expired, err := cd.originMgr.GetOriginClient(task.RawURL).IsExpired(task.RawURL, task.Headers, metaData.LastModified, metaData.ETag)
 	if err != nil {
 		logrus.Errorf("failed to check whether the task(%s) has expired: %v", task.ID, err)
 	}
@@ -88,7 +88,7 @@ func (cd *cacheDetector) parseBreakNum(ctx context.Context, task *types.TaskInfo
 		return 0
 	}
 
-	supportRange, err := cd.originClient.IsSupportRange(task.TaskURL, task.Headers)
+	supportRange, err := cd.originMgr.GetOriginClient(task.TaskURL).IsSupportRange(task.TaskURL, task.Headers)
 	if err != nil {
 		logrus.Errorf("failed to check whether the task(%s) supports partial requests: %v", task.ID, err)
 	}

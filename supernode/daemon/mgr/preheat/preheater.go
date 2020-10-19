@@ -28,7 +28,7 @@ type Preheater interface {
 	/**
 	 * Create a worker to preheat the task.
 	 */
-	NewWorker(task *mgr.PreheatTask , service *PreheatService ) IWorker
+	NewWorker(task *mgr.PreheatTask, service *PreheatService) IWorker
 
 	/**
 	 * cancel the running task

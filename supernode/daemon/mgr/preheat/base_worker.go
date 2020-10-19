@@ -28,7 +28,7 @@ const TIMEOUT = 30 * 60
 
 var _ IWorker = &BaseWorker{}
 
-type IWorker interface{
+type IWorker interface {
 	Run()
 	Stop()
 	query() chan error
@@ -38,19 +38,19 @@ type IWorker interface{
 }
 
 type BaseWorker struct {
-	Task *mgr.PreheatTask
-	Preheater Preheater
+	Task           *mgr.PreheatTask
+	Preheater      Preheater
 	PreheatService *PreheatService
-	stop *atomic.Value
-	worker IWorker
+	stop           *atomic.Value
+	worker         IWorker
 }
 
 func newBaseWorker(task *mgr.PreheatTask, preheater Preheater, preheatService *PreheatService) *BaseWorker {
 	worker := &BaseWorker{
-		Task: task,
-		Preheater: preheater,
+		Task:           task,
+		Preheater:      preheater,
 		PreheatService: preheatService,
-		stop: new(atomic.Value),
+		stop:           new(atomic.Value),
 	}
 	worker.worker = worker
 	return worker
@@ -58,7 +58,7 @@ func newBaseWorker(task *mgr.PreheatTask, preheater Preheater, preheatService *P
 
 func (w *BaseWorker) Run() {
 	go func() {
-		defer func(){
+		defer func() {
 			e := recover()
 			if e != nil {
 				debug.PrintStack()
@@ -66,7 +66,7 @@ func (w *BaseWorker) Run() {
 		}()
 
 		if w.worker.preRun() {
-			timer := time.NewTimer(time.Second*TIMEOUT)
+			timer := time.NewTimer(time.Second * TIMEOUT)
 			ch := w.worker.query()
 			select {
 			case <-timer.C:
@@ -102,13 +102,13 @@ func (w *BaseWorker) query() chan error {
 }
 
 func (w *BaseWorker) succeed() {
-	w.Task.FinishTime = time.Now().UnixNano()/int64(time.Millisecond)
+	w.Task.FinishTime = time.Now().UnixNano() / int64(time.Millisecond)
 	w.Task.Status = types.PreheatStatusSUCCESS
 	w.PreheatService.Update(w.Task.ID, w.Task)
 }
 
 func (w *BaseWorker) failed(errMsg string) {
-	w.Task.FinishTime = time.Now().UnixNano()/int64(time.Millisecond)
+	w.Task.FinishTime = time.Now().UnixNano() / int64(time.Millisecond)
 	w.Task.Status = types.PreheatStatusFAILED
 	w.Task.ErrorMsg = errMsg
 	w.PreheatService.Update(w.Task.ID, w.Task)

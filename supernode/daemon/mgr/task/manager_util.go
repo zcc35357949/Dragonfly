@@ -101,7 +101,7 @@ func (tm *Manager) addOrUpdateTask(ctx context.Context, req *types.TaskCreateReq
 			return nil, fmt.Errorf("failed to get file length and it is required in source CDN pattern")
 		}
 
-		supportRange, err := tm.originClient.IsSupportRange(task.TaskURL, task.Headers)
+		supportRange, err := tm.originMgr.GetOriginClient(task.TaskURL).IsSupportRange(task.TaskURL, task.Headers)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to check whether the task(%s) supports partial requests", task.ID)
 		}
@@ -548,7 +548,7 @@ func isWait(CDNStatus string) bool {
 }
 
 func (tm *Manager) getHTTPFileLength(taskID, url string, headers map[string]string) (int64, error) {
-	fileLength, code, err := tm.originClient.GetContentLength(url, headers)
+	fileLength, code, err := tm.originMgr.GetOriginClient(url).GetContentLength(url, headers)
 	if err != nil {
 		return -1, errors.Wrapf(errortypes.ErrUnknownError, "failed to get http file Length: %v", err)
 	}

@@ -176,9 +176,9 @@ func (client *OriginHTTPClient) Download(url string, headers map[string]string, 
 	if checkCode(resp.StatusCode) {
 		lastModifiedInt, _ := netutils.ConvertTimeStringToInt(resp.Header.Get("Last-Modified"))
 		return &originclient.FileResult{
-			Body: resp.Body,
+			Body:         resp.Body,
 			LastModified: lastModifiedInt,
-			Etag: resp.Header.Get("Etag"),
+			Etag:         resp.Header.Get("Etag"),
 		}, nil
 	}
 	return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)

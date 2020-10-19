@@ -30,7 +30,6 @@ import (
 	"github.com/dragonflyoss/Dragonfly/pkg/stringutils"
 	"github.com/dragonflyoss/Dragonfly/supernode/config"
 	"github.com/dragonflyoss/Dragonfly/supernode/daemon/mgr"
-	"github.com/dragonflyoss/Dragonfly/supernode/originclient"
 	"github.com/dragonflyoss/Dragonfly/supernode/store"
 	"github.com/dragonflyoss/Dragonfly/supernode/util"
 
@@ -87,7 +86,7 @@ type Manager struct {
 	metaDataManager *fileMetaDataManager
 	cdnReporter     *reporter
 	detector        *cacheDetector
-	originClient    originclient.OriginClient
+	originMgr       *mgr.OriginClientManager
 	pieceMD5Manager *pieceMD5Mgr
 	writer          *superWriter
 	metrics         *metrics
@@ -95,12 +94,12 @@ type Manager struct {
 
 // NewManager returns a new Manager.
 func NewManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr.ProgressMgr,
-	originClient originclient.OriginClient, register prometheus.Registerer) (mgr.CDNMgr, error) {
-	return newManager(cfg, cacheStore, progressManager, originClient, register)
+	originMgr *mgr.OriginClientManager, register prometheus.Registerer) (mgr.CDNMgr, error) {
+	return newManager(cfg, cacheStore, progressManager, originMgr, register)
 }
 
 func newManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr.ProgressMgr,
-	originClient originclient.OriginClient, register prometheus.Registerer) (*Manager, error) {
+	originMgr *mgr.OriginClientManager, register prometheus.Registerer) (*Manager, error) {
 	rateLimiter := ratelimiter.NewRateLimiter(ratelimiter.TransRate(int64(cfg.MaxBandwidth-cfg.SystemReservedBandwidth)), 2)
 	metaDataManager := newFileMetaDataManager(cacheStore)
 	pieceMD5Manager := newpieceMD5Mgr()
@@ -114,8 +113,8 @@ func newManager(cfg *config.Config, cacheStore *store.Store, progressManager mgr
 		metaDataManager: metaDataManager,
 		pieceMD5Manager: pieceMD5Manager,
 		cdnReporter:     cdnReporter,
-		detector:        newCacheDetector(cacheStore, metaDataManager, originClient),
-		originClient:    originClient,
+		detector:        newCacheDetector(cacheStore, metaDataManager, originMgr),
+		originMgr:       originMgr,
 		writer:          newSuperWriter(cacheStore, cdnReporter),
 		metrics:         newMetrics(register),
 	}, nil

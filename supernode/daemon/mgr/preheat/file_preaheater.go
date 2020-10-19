@@ -25,7 +25,7 @@ import (
 )
 
 func init() {
-	RegisterPreheater("file", &FilePreheat{BasePreheater:new(BasePreheater)})
+	RegisterPreheater("file", &FilePreheat{BasePreheater: new(BasePreheater)})
 }
 
 type FilePreheat struct {
@@ -39,7 +39,7 @@ func (p *FilePreheat) Type() string {
 /**
  * Create a worker to preheat the task.
  */
-func (p *FilePreheat) NewWorker(task *mgr.PreheatTask , service *PreheatService) IWorker {
+func (p *FilePreheat) NewWorker(task *mgr.PreheatTask, service *PreheatService) IWorker {
 	worker := &FileWorker{BaseWorker: newBaseWorker(task, p, service)}
 	worker.worker = worker
 	p.addWorker(task.ID, worker)
@@ -72,8 +72,8 @@ func (w *FileWorker) afterRun() {
 
 func (w *FileWorker) query() chan error {
 	result := make(chan error, 1)
-	go func(){
-		time.Sleep(time.Second*2)
+	go func() {
+		time.Sleep(time.Second * 2)
 		for w.isRunning() {
 			if w.Task.FinishTime > 0 {
 				w.Preheater.Cancel(w.Task.ID)
@@ -86,7 +86,7 @@ func (w *FileWorker) query() chan error {
 			status := w.progress.cmd.ProcessState
 			if status != nil && status.Exited() {
 				if !status.Success() {
-					errMsg := fmt.Sprintf("dfget failed: %s err: %s",  status.String(), w.progress.errmsg.String())
+					errMsg := fmt.Sprintf("dfget failed: %s err: %s", status.String(), w.progress.errmsg.String())
 					w.failed(errMsg)
 					w.Preheater.Cancel(w.Task.ID)
 					result <- errors.New(errMsg)
@@ -99,9 +99,8 @@ func (w *FileWorker) query() chan error {
 				}
 			}
 
-			time.Sleep(time.Second*10)
+			time.Sleep(time.Second * 10)
 		}
 	}()
 	return result
 }
-

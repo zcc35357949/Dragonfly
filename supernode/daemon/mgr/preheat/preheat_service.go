@@ -34,24 +34,24 @@ import (
 )
 
 const (
-	key = ">I$pg-~AS~sP'rqu_`Oh&lz#9]\"=;nE%"
+	key       = ">I$pg-~AS~sP'rqu_`Oh&lz#9]\"=;nE%"
 	dfgetPath = "/usr/local/bin/dfget"
 )
 
 type PreheatService struct {
 	PreheatPath string
-	repository *PreheatTaskRepository
+	repository  *PreheatTaskRepository
 }
 
 func NewPreheatService(homeDir string) *PreheatService {
 	return &PreheatService{
-		repository: NewPreheatTaskRepository(),
+		repository:  NewPreheatTaskRepository(),
 		PreheatPath: filepath.Join(homeDir, "repo", "preheat"),
 	}
 }
 
 // Get detailed preheat task information
-func (svc *PreheatService) 	Get(id string) *mgr.PreheatTask {
+func (svc *PreheatService) Get(id string) *mgr.PreheatTask {
 	if id == "" {
 		return nil
 	}
@@ -59,12 +59,12 @@ func (svc *PreheatService) 	Get(id string) *mgr.PreheatTask {
 }
 
 // Get all preheat tasks
-func (svc *PreheatService) 	GetAll() []*mgr.PreheatTask {
+func (svc *PreheatService) GetAll() []*mgr.PreheatTask {
 	return svc.repository.GetAll()
 }
 
 // Delete a preheat task.
-func (svc *PreheatService) 	Delete(id string) {
+func (svc *PreheatService) Delete(id string) {
 	task := svc.repository.Get(id)
 	if task != nil && len(task.Children) > 0 {
 		for _, childId := range task.Children {
@@ -75,29 +75,29 @@ func (svc *PreheatService) 	Delete(id string) {
 }
 
 // update a preheat task
-func (svc *PreheatService) 	Update(id string, task *mgr.PreheatTask) bool {
+func (svc *PreheatService) Update(id string, task *mgr.PreheatTask) bool {
 	return svc.repository.Update(id, task)
 }
 
 // create a preheat task
-func (svc *PreheatService) 	Create(task *mgr.PreheatTask) (string, error) {
+func (svc *PreheatService) Create(task *mgr.PreheatTask) (string, error) {
 	preheater := GetPreheater(strings.ToLower(task.Type))
 	if preheater == nil {
-		return "", dferr.New(400, task.Type + " isn't supported")
+		return "", dferr.New(400, task.Type+" isn't supported")
 	}
 	task.ID = svc.createTaskID(task.URL, task.Filter, task.Identifier, task.Headers)
 	task.StartTime = time.Now().UnixNano() / int64(time.Millisecond)
 	task.Status = types.PreheatStatusWAITING
 	previous, _ := svc.repository.Add(task)
 	if previous != nil && previous.FinishTime > 0 {
-		return "", dferr.New(http.StatusAlreadyReported, "preheat task already exists, id:" + task.ID)
+		return "", dferr.New(http.StatusAlreadyReported, "preheat task already exists, id:"+task.ID)
 	}
 	preheater.NewWorker(task, svc).Run()
 	return task.ID, nil
 }
 
 // execute preheat task
-func (svc *PreheatService) 	ExecutePreheat(task *mgr.PreheatTask) (progress *PreheatProgress, err error) {
+func (svc *PreheatService) ExecutePreheat(task *mgr.PreheatTask) (progress *PreheatProgress, err error) {
 	targetName := uuid.New()
 	targetPath := filepath.Join(svc.PreheatPath, targetName)
 	cmd := svc.createCommand(task.URL, task.Headers, task.Filter, task.Identifier, targetPath)
@@ -126,10 +126,10 @@ func (svc *PreheatService) createTaskID(url, filter, identifier string, header m
 
 func (svc *PreheatService) createCommand(url string, header map[string]string, filter, identifier, tmpTarget string) *exec.Cmd {
 	netRate := 50
-	rate := fmt.Sprintf("%dM", netRate / 2)
+	rate := fmt.Sprintf("%dM", netRate/2)
 
 	args := []string{"-u", url, "-o", tmpTarget, "--callsystem", "dragonfly_preheat", "--totallimit", rate, "-s", rate}
-	if (header != nil) {
+	if header != nil {
 		for k, v := range header {
 			args = append(args, []string{"--header", fmt.Sprintf("%s:%s", k, v)}...)
 		}

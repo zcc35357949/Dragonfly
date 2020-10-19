@@ -23,7 +23,7 @@ import (
 
 func TestParseLayers(t *testing.T) {
 	task := &mgr.PreheatTask{
-		URL: "https://registry.cn-zhangjiakou.aliyuncs.com/v2/acs/alpine/manifests/3.6",
+		URL:     "https://registry.cn-zhangjiakou.aliyuncs.com/v2/acs/alpine/manifests/3.6",
 		Headers: map[string]string{},
 	}
 	worker := &ImageWorker{BaseWorker: newBaseWorker(task, nil, nil)}
